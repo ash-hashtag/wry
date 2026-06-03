@@ -429,6 +429,17 @@ impl InnerWebView {
       settings
         .set_enable_back_forward_navigation_gestures(attributes.back_forward_navigation_gestures);
 
+      // Enable WebRTC (requires custom build of webkitgtk)
+      settings.set_enable_webrtc(true);
+      settings.set_enable_media_stream(true);
+      settings.set_enable_mediasource(true);
+      settings.set_enable_media(true);
+      settings.set_enable_media_capabilities(true);
+      settings.set_enable_encrypted_media(true);
+      settings.set_media_playback_requires_user_gesture(false);
+      settings.set_media_playback_allows_inline(true);
+      settings.set_media_content_types_requiring_hardware_support(None);
+
       // Enable clipboard
       if attributes.clipboard {
         settings.set_javascript_can_access_clipboard(true);
@@ -458,6 +469,13 @@ impl InnerWebView {
   ) {
     // window.close()
     webview.connect_close(move |webview| unsafe { webview.destroy() });
+
+    // allow all permission requests for debugging
+    webview.connect_permission_request(move |_, request| {
+      use webkit2gtk::PermissionRequestExt;
+      request.allow();
+      true
+    });
 
     // Synthetic mouse events
     synthetic_mouse_events::setup(webview);
